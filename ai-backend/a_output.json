@@ -1,0 +1,14 @@
+{
+    "summary": "Amul milk pouch \u2013 LDPE plastic",
+    "disposal_category": "recyclable",
+    "recyclable": true,
+    "hazardous": false,
+    "instructions": [
+        "Empty the pouch completely.",
+        "Rinse and dry it to remove milk residue.",
+        "If your municipality recycles LDPE, place in plastic recycling.",
+        "Otherwise, dispose in general waste."
+    ],
+    "confidence": 0.95,
+    "follow_up_question": null
+}
