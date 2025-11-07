@@ -18,7 +18,7 @@
 ### Step 1: Start the API Server (30 seconds)
 
 ```bash
-cd /home/kenx1kaneki/Desktop/greenpoints-local
+cd /home/kenx1kaneki/Desktop/greenPoints-local
 python3 server.py
 ```
 

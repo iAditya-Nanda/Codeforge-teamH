@@ -654,7 +654,7 @@ async function uploadImage(imageUri) {
 
 ```bash
 # 1. Copy blockchain files to your server
-scp -r greenpoints-local/ user@your-server:/opt/greenpoints/
+scp -r greenPoints-local-Blockchain/ user@your-server:/opt/greenpoints/
 
 # 2. Install dependencies
 ssh user@your-server

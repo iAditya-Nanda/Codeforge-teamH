@@ -17,7 +17,7 @@ That's it! No blockchain knowledge needed on the frontend side.
 ### Step 1: Start the Blockchain API Server
 
 ```bash
-cd /home/kenx1kaneki/Desktop/greenpoints-local
+cd /home/kenx1kaneki/Desktop/greenPoints-local-Blockchain
 python3 server.py
 ```
 
@@ -329,7 +329,7 @@ async function rejectVerification(verificationId, reason) {
 
 ```bash
 # 1. Copy files to server
-scp -r greenpoints-local/ user@your-server:/opt/greenpoints/
+scp -r greenPoints-local-Blockchain/ user@your-server:/opt/greenpoints/
 
 # 2. SSH to server
 ssh user@your-server

@@ -67,7 +67,7 @@ All features have been tested and verified:
 
 ```bash
 # Navigate to project
-cd /home/kenx1kaneki/Desktop/greenpoints-local
+cd /home/kenx1kaneki/Desktop/greenPoints-local-Blockchain
 
 # Run demo simulation (RECOMMENDED FIRST!)
 python3 demo.py
