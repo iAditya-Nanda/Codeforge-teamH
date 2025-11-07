@@ -2,11 +2,12 @@ import random
 import uuid
 from datetime import datetime
 from flask import jsonify, request
-from sqlalchemy import Column, Integer, String, Boolean, DateTime, ForeignKey
+from sqlalchemy import Column, Integer, String, Boolean, DateTime
 from db import Base, engine, SessionLocal
+from utils.blockchain import blockchain  # ✅ Import local blockchain manager
 
 # -------------------------------------------
-# ✅ QR Table
+# ✅ BusinessQR Table
 # -------------------------------------------
 class BusinessQR(Base):
     __tablename__ = "business_qr"
@@ -45,6 +46,16 @@ def generate_qr():
         db.commit()
         db.refresh(new_qr)
 
+        # ✅ Add blockchain entry
+        block_data = {
+            "event": "qr_generated",
+            "qr_id": new_qr.qr_code,
+            "business_id": new_qr.business_id,
+            "action": new_qr.action,
+            "timestamp": str(new_qr.created_at)
+        }
+        block_hash = blockchain.add_block(block_data)
+
         return jsonify({
             "message": "QR generated successfully",
             "qr": {
@@ -53,6 +64,10 @@ def generate_qr():
                 "action": new_qr.action,
                 "is_scanned": new_qr.is_scanned,
                 "created_at": str(new_qr.created_at)
+            },
+            "blockchain": {
+                "hash": block_hash,
+                "data": block_data
             }
         }), 201
     except Exception as e:
@@ -101,19 +116,36 @@ def mark_qr_scanned():
         if qr.is_scanned:
             return jsonify({"message": "QR already scanned"}), 200
 
+        # Update scan state and assign random reward
         qr.is_scanned = True
         qr.scanned_by_user = data["user_id"]
         qr.points_awarded = random.randint(1, 10)
         qr.scanned_at = datetime.utcnow()
-
         db.commit()
+        db.refresh(qr)
+
+        # ✅ Blockchain log for the scan
+        block_data = {
+            "event": "qr_scanned",
+            "qr_id": qr.qr_code,
+            "business_id": qr.business_id,
+            "user_id": qr.scanned_by_user,
+            "points_awarded": qr.points_awarded,
+            "action": qr.action,
+            "timestamp": str(qr.scanned_at)
+        }
+        block_hash = blockchain.add_block(block_data)
 
         return jsonify({
             "message": "QR scan confirmed, points issued",
             "qr_id": qr.qr_code,
             "points_awarded": qr.points_awarded,
             "scanned_by_user": qr.scanned_by_user,
-            "scanned_at": str(qr.scanned_at)
+            "scanned_at": str(qr.scanned_at),
+            "blockchain": {
+                "hash": block_hash,
+                "data": block_data
+            }
         }), 200
     except Exception as e:
         db.rollback()

@@ -2,6 +2,7 @@ from flask import jsonify
 from sqlalchemy import Column, Integer, String, Float
 from db import Base, engine, SessionLocal
 import json
+from utils.blockchain import blockchain  # ✅ import blockchain handler
 
 # -------------------------------------------
 # ✅ Places Table
@@ -23,7 +24,7 @@ Base.metadata.create_all(bind=engine)
 
 
 # -------------------------------------------
-# ✅ Add Place
+# ✅ Add Place (with Blockchain record)
 # -------------------------------------------
 def add_place(data):
     required_fields = ["name", "distance", "type", "level", "tags", "latitude", "longitude"]
@@ -46,6 +47,21 @@ def add_place(data):
         db.commit()
         db.refresh(new_place)
 
+        # ✅ Add to blockchain ledger
+        block_data = {
+            "event": "place_added",
+            "id": new_place.id,
+            "name": new_place.name,
+            "type": new_place.type,
+            "level": new_place.level,
+            "tags": json.loads(new_place.tags),
+            "coords": {
+                "latitude": new_place.latitude,
+                "longitude": new_place.longitude
+            }
+        }
+        block_hash = blockchain.add_block(block_data)
+
         return jsonify({
             "message": "Place added successfully",
             "place": {
@@ -59,8 +75,13 @@ def add_place(data):
                     "latitude": new_place.latitude,
                     "longitude": new_place.longitude
                 }
+            },
+            "blockchain": {
+                "hash": block_hash,
+                "data": block_data
             }
         }), 201
+
     except Exception as e:
         db.rollback()
         return jsonify({"error": str(e)}), 500

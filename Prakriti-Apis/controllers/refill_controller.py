@@ -1,6 +1,7 @@
 from flask import jsonify
 from sqlalchemy import Column, Integer, String, Float
 from db import Base, engine, SessionLocal
+from utils.blockchain import blockchain  # ✅ Import local blockchain utility
 
 # -------------------------------------------
 # ✅ RefillStations Table
@@ -20,7 +21,7 @@ Base.metadata.create_all(bind=engine)
 
 
 # -------------------------------------------
-# ✅ Add a Refill Station
+# ✅ Add a Refill Station (with blockchain logging)
 # -------------------------------------------
 def add_refill_station(data):
     required_fields = ["name", "distance", "status", "latitude", "longitude"]
@@ -41,6 +42,19 @@ def add_refill_station(data):
         db.commit()
         db.refresh(station)
 
+        # ✅ Add blockchain record for transparency
+        block_data = {
+            "event": "refill_station_added",
+            "id": station.id,
+            "name": station.name,
+            "status": station.status,
+            "coords": {
+                "latitude": station.latitude,
+                "longitude": station.longitude
+            }
+        }
+        block_hash = blockchain.add_block(block_data)
+
         return jsonify({
             "message": "Refill station added successfully",
             "station": {
@@ -52,6 +66,10 @@ def add_refill_station(data):
                     "latitude": station.latitude,
                     "longitude": station.longitude
                 }
+            },
+            "blockchain": {
+                "hash": block_hash,
+                "data": block_data
             }
         }), 201
     except Exception as e:

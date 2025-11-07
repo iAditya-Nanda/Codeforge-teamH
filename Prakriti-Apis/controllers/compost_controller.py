@@ -1,6 +1,7 @@
 from flask import jsonify
 from sqlalchemy import Column, Integer, String, Float
 from db import Base, engine, SessionLocal
+from utils.blockchain import blockchain   # ✅ import blockchain class
 
 # -------------------------------------------
 # ✅ CompostPoints Table
@@ -20,7 +21,7 @@ Base.metadata.create_all(bind=engine)
 
 
 # -------------------------------------------
-# ✅ Add Compost Point
+# ✅ Add Compost Point + Blockchain
 # -------------------------------------------
 def add_compost_point(data):
     required_fields = ["name", "distance", "benefit", "latitude", "longitude"]
@@ -34,12 +35,24 @@ def add_compost_point(data):
             name=data["name"],
             distance=data["distance"],
             benefit=data["benefit"],
-            latitude=data["latitude"],
-            longitude=data["longitude"]
+            latitude=float(data["latitude"]),
+            longitude=float(data["longitude"])
         )
         db.add(new_point)
         db.commit()
         db.refresh(new_point)
+
+        # ✅ Record on blockchain
+        block_data = {
+            "event": "compost_point_added",
+            "id": new_point.id,
+            "name": new_point.name,
+            "distance": new_point.distance,
+            "benefit": new_point.benefit,
+            "latitude": new_point.latitude,
+            "longitude": new_point.longitude
+        }
+        block_hash = blockchain.add_block(block_data)
 
         return jsonify({
             "message": "Compost point added successfully",
@@ -52,8 +65,13 @@ def add_compost_point(data):
                     "latitude": new_point.latitude,
                     "longitude": new_point.longitude
                 }
+            },
+            "blockchain": {
+                "hash": block_hash,
+                "data": block_data
             }
         }), 201
+
     except Exception as e:
         db.rollback()
         return jsonify({"error": str(e)}), 500
@@ -74,7 +92,10 @@ def get_compost_points():
                 "name": p.name,
                 "distance": p.distance,
                 "benefit": p.benefit,
-                "coords": {"latitude": p.latitude, "longitude": p.longitude}
+                "coords": {
+                    "latitude": p.latitude,
+                    "longitude": p.longitude
+                }
             }
             for p in points
         ]

@@ -1,6 +1,7 @@
 from flask import jsonify
 from sqlalchemy import Column, Integer, String
 from db import Base, engine, SessionLocal
+from utils.blockchain import blockchain  # ✅ import the blockchain class
 
 # -------------------------------
 # Business table (compact)
@@ -41,9 +42,10 @@ def get_business_profile(business_id: int):
     finally:
         db.close()
 
+
 # -------------------------------
-# (Optional) POST /upsert for seeding
-# body: { id?, name, location, stampStatus, visitors, pointsIssued, refillsGiven }
+# POST /upsert
+# Add or update a business + record blockchain block
 # -------------------------------
 def upsert_business(data: dict):
     required = ["name", "location", "stampStatus"]
@@ -56,6 +58,8 @@ def upsert_business(data: dict):
         biz = None
         if "id" in data and data["id"]:
             biz = db.query(Business).get(int(data["id"]))
+
+        action_type = "update" if biz else "create"
 
         if not biz:
             biz = Business()
@@ -71,6 +75,29 @@ def upsert_business(data: dict):
         db.commit()
         db.refresh(biz)
 
-        return jsonify({"message": "upserted", "id": biz.id}), 200
+        # ✅ Add blockchain record for audit tracking
+        block_data = {
+            "event": "business_upsert",
+            "action": action_type,
+            "business_id": biz.id,
+            "name": biz.name,
+            "location": biz.location,
+            "stamp_status": biz.stamp_status,
+            "visitors": biz.visitors,
+            "points_issued": biz.points_issued,
+            "refills_given": biz.refills_given
+        }
+        block_hash = blockchain.add_block(block_data)
+
+        return jsonify({
+            "message": "upserted",
+            "id": biz.id,
+            "block_hash": block_hash,   # ✅ include blockchain hash
+            "block_data": block_data
+        }), 200
+
+    except Exception as e:
+        db.rollback()
+        return jsonify({"error": str(e)}), 500
     finally:
         db.close()

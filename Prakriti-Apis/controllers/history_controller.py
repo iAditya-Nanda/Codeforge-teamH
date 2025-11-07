@@ -1,7 +1,8 @@
 from flask import jsonify
-from sqlalchemy import Column, Integer, String, DateTime, Float, ForeignKey
+from sqlalchemy import Column, Integer, String, DateTime, Float
 from datetime import datetime
 from db import Base, engine, SessionLocal
+from utils.blockchain import blockchain  # ✅ import blockchain handler
 
 # -------------------------------------------
 # ✅ History Table (with user_id)
@@ -23,7 +24,7 @@ Base.metadata.create_all(bind=engine)
 
 
 # -------------------------------------------
-# ✅ Add new history entry for a user
+# ✅ Add new history entry for a user + blockchain
 # -------------------------------------------
 def add_history(data):
     required_fields = ["user_id", "type", "title", "location", "points", "time"]
@@ -45,6 +46,19 @@ def add_history(data):
         db.commit()
         db.refresh(new_entry)
 
+        # ✅ Add blockchain record
+        block_data = {
+            "event": "user_history_add",
+            "user_id": new_entry.user_id,
+            "type": new_entry.type,
+            "title": new_entry.title,
+            "location": new_entry.location,
+            "points": new_entry.points,
+            "time": new_entry.time,
+            "created_at": new_entry.created_at.isoformat()
+        }
+        block_hash = blockchain.add_block(block_data)
+
         return jsonify({
             "message": "History entry added successfully",
             "history": {
@@ -56,8 +70,13 @@ def add_history(data):
                 "points": new_entry.points,
                 "time": new_entry.time,
                 "created_at": str(new_entry.created_at)
+            },
+            "blockchain": {
+                "hash": block_hash,
+                "data": block_data
             }
         }), 201
+
     except Exception as e:
         db.rollback()
         return jsonify({"error": str(e)}), 500

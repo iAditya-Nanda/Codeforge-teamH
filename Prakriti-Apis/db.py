@@ -6,7 +6,6 @@ import urllib
 # ✅ SQL Server Connection (Windows Authentication)
 # -------------------------------------------
 
-# Your verified instance & database
 server = r"LENOVOT470-WIND\SQLEXPRESS"   # instance name from SSMS
 database = "Prakriti"                     # your database name
 
@@ -26,7 +25,15 @@ DATABASE_URL = f"mssql+pyodbc:///?odbc_connect={params}"
 # -------------------------------------------
 # ✅ SQLAlchemy Engine and Session Setup
 # -------------------------------------------
-engine = create_engine(DATABASE_URL, echo=False, future=True)
+
+# 💡 Added implicit_returning=False to avoid OUTPUT clause errors
+engine = create_engine(
+    DATABASE_URL,
+    echo=False,
+    future=True,
+    implicit_returning=False  # <-- THIS FIXES YOUR TRIGGER ERROR
+)
+
 SessionLocal = sessionmaker(bind=engine, autocommit=False, autoflush=False)
 Base = declarative_base()
 

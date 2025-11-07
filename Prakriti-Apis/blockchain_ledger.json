@@ -1,0 +1,186 @@
+[
+    {
+        "index": 0,
+        "timestamp": "2025-11-07 05:59:23.949031",
+        "data": {
+            "event": "verifier_dashboard_fetched",
+            "verifier_id": 3,
+            "timestamp": "2025-11-07 05:59:23.948864",
+            "stats": {
+                "pending_verifications": 0,
+                "approved_actions": 1,
+                "rejected_items": 1
+            }
+        },
+        "previous_hash": "0000000000000000000000000000000000000000000000000000000000000000",
+        "hash": "36507360cbd401fa346e8261927154e74396a553e8b25294d2f8fed1758bd096",
+        "_id": "690d8abbfa96bf08b23d0a75"
+    },
+    {
+        "index": 1,
+        "timestamp": "2025-11-07 05:59:36.077222",
+        "data": {
+            "event": "verifier_dashboard_fetched",
+            "verifier_id": 3,
+            "timestamp": "2025-11-07 05:59:36.077100",
+            "stats": {
+                "pending_verifications": 0,
+                "approved_actions": 1,
+                "rejected_items": 1
+            }
+        },
+        "previous_hash": "36507360cbd401fa346e8261927154e74396a553e8b25294d2f8fed1758bd096",
+        "hash": "6a2cad9b55d8dd28cc1bd560142a914f7de8446405c60ca5a922523ce617c63b",
+        "_id": "690d8ac83202f1d0c4da4d79"
+    },
+    {
+        "index": 2,
+        "timestamp": "2025-11-07 05:59:37.460512",
+        "data": {
+            "event": "verifier_dashboard_fetched",
+            "verifier_id": 3,
+            "timestamp": "2025-11-07 05:59:37.460439",
+            "stats": {
+                "pending_verifications": 0,
+                "approved_actions": 1,
+                "rejected_items": 1
+            }
+        },
+        "previous_hash": "6a2cad9b55d8dd28cc1bd560142a914f7de8446405c60ca5a922523ce617c63b",
+        "hash": "8f355127e0a091f286e17114242b476d84fbba3ce7ac8bf2cb3b0885e35dc948",
+        "_id": "690d8ac93202f1d0c4da4d7a"
+    },
+    {
+        "index": 3,
+        "timestamp": "2025-11-07 05:59:42.499271",
+        "data": {
+            "event": "verifier_dashboard_fetched",
+            "verifier_id": 3,
+            "timestamp": "2025-11-07 05:59:42.499213",
+            "stats": {
+                "pending_verifications": 0,
+                "approved_actions": 1,
+                "rejected_items": 1
+            }
+        },
+        "previous_hash": "8f355127e0a091f286e17114242b476d84fbba3ce7ac8bf2cb3b0885e35dc948",
+        "hash": "353d63cd92e0cf13c01df7eaecaa1775183f74cbfa1d173d6be5d91501ddc0f7",
+        "_id": "690d8ace3202f1d0c4da4d7b"
+    },
+    {
+        "index": 4,
+        "timestamp": "2025-11-07 05:59:47.466018",
+        "data": {
+            "event": "verifier_dashboard_fetched",
+            "verifier_id": 3,
+            "timestamp": "2025-11-07 05:59:47.465960",
+            "stats": {
+                "pending_verifications": 0,
+                "approved_actions": 1,
+                "rejected_items": 1
+            }
+        },
+        "previous_hash": "353d63cd92e0cf13c01df7eaecaa1775183f74cbfa1d173d6be5d91501ddc0f7",
+        "hash": "55913870bb608d1858ab390764e5d7356ca0342d864c14d05713646a0ae34edf",
+        "_id": "690d8ad33202f1d0c4da4d7c"
+    },
+    {
+        "index": 5,
+        "timestamp": "2025-11-07 05:59:52.468470",
+        "data": {
+            "event": "verifier_dashboard_fetched",
+            "verifier_id": 3,
+            "timestamp": "2025-11-07 05:59:52.468373",
+            "stats": {
+                "pending_verifications": 0,
+                "approved_actions": 1,
+                "rejected_items": 1
+            }
+        },
+        "previous_hash": "55913870bb608d1858ab390764e5d7356ca0342d864c14d05713646a0ae34edf",
+        "hash": "68759853ebc14820924106f5b315ec32d634d8d79c5bc93f972d35c17b34f60c",
+        "_id": "690d8ad83202f1d0c4da4d7d"
+    },
+    {
+        "index": 6,
+        "timestamp": "2025-11-07 05:59:57.563884",
+        "data": {
+            "event": "verifier_dashboard_fetched",
+            "verifier_id": 3,
+            "timestamp": "2025-11-07 05:59:57.563783",
+            "stats": {
+                "pending_verifications": 0,
+                "approved_actions": 1,
+                "rejected_items": 1
+            }
+        },
+        "previous_hash": "68759853ebc14820924106f5b315ec32d634d8d79c5bc93f972d35c17b34f60c",
+        "hash": "a8def295121b5f2aba1c7a6b117f2531c2b31f06d2ebb1c63d1189bdcb0ffa04",
+        "_id": "690d8add3202f1d0c4da4d7e"
+    },
+    {
+        "index": 7,
+        "timestamp": "2025-11-07 06:00:15.071463",
+        "data": {
+            "event": "user_login",
+            "user_id": 3,
+            "contact": "kajal@example.com",
+            "role": "verifier",
+            "timestamp": "2025-11-07 06:00:15.071393"
+        },
+        "previous_hash": "a8def295121b5f2aba1c7a6b117f2531c2b31f06d2ebb1c63d1189bdcb0ffa04",
+        "hash": "08ac04a3987beccd398d4e62ffce1360e64a203f3ab422ed7fdaf596f97c53df",
+        "_id": "690d8aef3202f1d0c4da4d7f"
+    },
+    {
+        "index": 8,
+        "timestamp": "2025-11-07 06:00:15.482953",
+        "data": {
+            "event": "verifier_dashboard_fetched",
+            "verifier_id": 3,
+            "timestamp": "2025-11-07 06:00:15.482895",
+            "stats": {
+                "pending_verifications": 0,
+                "approved_actions": 1,
+                "rejected_items": 1
+            }
+        },
+        "previous_hash": "08ac04a3987beccd398d4e62ffce1360e64a203f3ab422ed7fdaf596f97c53df",
+        "hash": "086890f6bde111cfea199caa6f5841d27adefd8fa7821b07ad977baa6de16d91",
+        "_id": "690d8aef3202f1d0c4da4d80"
+    },
+    {
+        "index": 9,
+        "timestamp": "2025-11-07 06:00:20.423329",
+        "data": {
+            "event": "verifier_dashboard_fetched",
+            "verifier_id": 3,
+            "timestamp": "2025-11-07 06:00:20.423269",
+            "stats": {
+                "pending_verifications": 0,
+                "approved_actions": 1,
+                "rejected_items": 1
+            }
+        },
+        "previous_hash": "086890f6bde111cfea199caa6f5841d27adefd8fa7821b07ad977baa6de16d91",
+        "hash": "a311a4c3dfd389fe7cd5ca5a07f72faad82ee524cc1f7e33a9e13807b9037169",
+        "_id": "690d8af43202f1d0c4da4d81"
+    },
+    {
+        "index": 10,
+        "timestamp": "2025-11-07 06:00:25.422915",
+        "data": {
+            "event": "verifier_dashboard_fetched",
+            "verifier_id": 3,
+            "timestamp": "2025-11-07 06:00:25.422829",
+            "stats": {
+                "pending_verifications": 0,
+                "approved_actions": 1,
+                "rejected_items": 1
+            }
+        },
+        "previous_hash": "a311a4c3dfd389fe7cd5ca5a07f72faad82ee524cc1f7e33a9e13807b9037169",
+        "hash": "e1e072c852bb0485953df18f97c9a1f771356dc1a3bb888201a86fe76fb1a32d",
+        "_id": "690d8af93202f1d0c4da4d82"
+    }
+]

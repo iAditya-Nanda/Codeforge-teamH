@@ -4,9 +4,10 @@ from sqlalchemy.exc import IntegrityError
 from datetime import datetime
 from db import Base, engine, SessionLocal
 from utils.security import hash_password, verify_password
+from utils.blockchain import blockchain 
 
 # -------------------------------------------
-# Define User table directly here
+# Define User Table
 # -------------------------------------------
 class User(Base):
     __tablename__ = "users"
@@ -22,11 +23,11 @@ class User(Base):
         CheckConstraint("role IN ('user', 'business', 'verifier')", name="ck_valid_roles"),
     )
 
-# Create table if not exist
 Base.metadata.create_all(bind=engine)
 
+
 # -------------------------------------------
-# Signup Function
+# ✅ Signup Function (Blockchain integrated)
 # -------------------------------------------
 def signup_user(data):
     name = data.get("name")
@@ -56,6 +57,17 @@ def signup_user(data):
         db.commit()
         db.refresh(new_user)
 
+        # 👇 Add signup event to blockchain
+        block_data = {
+            "event": "user_signup",
+            "user_id": new_user.id,
+            "name": new_user.name,
+            "contact": new_user.contact,
+            "role": new_user.role,
+            "timestamp": str(new_user.created_at)
+        }
+        block_hash = blockchain.add_block(block_data)
+
         return jsonify({
             "message": "Signup successful",
             "user": {
@@ -63,7 +75,8 @@ def signup_user(data):
                 "name": new_user.name,
                 "contact": new_user.contact,
                 "role": new_user.role,
-                "created_at": str(new_user.created_at)
+                "created_at": str(new_user.created_at),
+                "block_hash": block_hash   # ✅ blockchain reference
             }
         }), 201
 
@@ -75,7 +88,7 @@ def signup_user(data):
 
 
 # -------------------------------------------
-# Login Function
+# ✅ Login Function (Blockchain integrated)
 # -------------------------------------------
 def login_user(data):
     contact = data.get("contact")
@@ -94,12 +107,23 @@ def login_user(data):
     if not verify_password(password, user.password_hash):
         return jsonify({"error": "Invalid credentials"}), 401
 
+    # 👇 Record login on blockchain
+    block_data = {
+        "event": "user_login",
+        "user_id": user.id,
+        "contact": user.contact,
+        "role": user.role,
+        "timestamp": str(datetime.utcnow())
+    }
+    block_hash = blockchain.add_block(block_data)
+
     return jsonify({
         "message": "Login successful",
         "user": {
             "id": user.id,
             "name": user.name,
             "contact": user.contact,
-            "role": user.role
+            "role": user.role,
+            "block_hash": block_hash  # ✅ blockchain record
         }
     }), 200

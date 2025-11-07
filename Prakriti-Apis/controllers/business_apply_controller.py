@@ -5,17 +5,20 @@ from flask import jsonify, request
 from werkzeug.utils import secure_filename
 from sqlalchemy import Column, Integer, String, Boolean, DateTime
 from db import Base, engine, SessionLocal
+from utils.blockchain import blockchain  # ✅ new import for blockchain
 
+# -------------------------------------------
+# ⚙️ Config
+# -------------------------------------------
 UPLOAD_FOLDER = os.path.join(os.getcwd(), "uploads")
 ALLOWED_EXTENSIONS = {"jpg", "jpeg", "png", "gif"}
-
 
 def allowed_file(filename):
     return "." in filename and filename.rsplit(".", 1)[1].lower() in ALLOWED_EXTENSIONS
 
 
 # -------------------------------------------
-# ✅ Green Stamp Applications Table
+# ✅ Business Applications Table
 # -------------------------------------------
 class BusinessApplication(Base):
     __tablename__ = "business_applications"
@@ -33,11 +36,11 @@ Base.metadata.create_all(bind=engine)
 
 # -------------------------------------------
 # ✅ POST /api/v1/business/apply
+# Adds application + blockchain record
 # -------------------------------------------
 def submit_application():
     db = SessionLocal()
     try:
-        # Parse text fields
         business_id = request.form.get("business_id")
         description = request.form.get("description")
         checklist_str = request.form.get("checklist")
@@ -75,6 +78,19 @@ def submit_application():
         db.commit()
         db.refresh(app_entry)
 
+        # ✅ Add blockchain record for immutability
+        block_data = {
+            "event": "business_application",
+            "application_id": app_entry.id,
+            "business_id": app_entry.business_id,
+            "description": app_entry.description,
+            "checklist": checklist,
+            "photos": saved_paths,
+            "status": app_entry.status,
+            "timestamp": str(app_entry.created_at),
+        }
+        block_hash = blockchain.add_block(block_data)
+
         return jsonify({
             "message": "Application submitted successfully",
             "application": {
@@ -84,9 +100,11 @@ def submit_application():
                 "checklist": checklist,
                 "photos": saved_paths,
                 "status": app_entry.status,
-                "created_at": str(app_entry.created_at)
+                "created_at": str(app_entry.created_at),
+                "block_hash": block_hash   # ✅ blockchain hash reference
             }
         }), 201
+
     except Exception as e:
         db.rollback()
         return jsonify({"error": str(e)}), 500
@@ -121,8 +139,7 @@ def get_applications_by_business(business_id):
 
 
 # -------------------------------------------
-# ✅ GET /api/v1/business/applications  (NEW)
-# Get ALL applications (for Verifiers/Admins)
+# ✅ GET /api/v1/business/applications (for verifier/admin)
 # -------------------------------------------
 def get_all_applications():
     db = SessionLocal()

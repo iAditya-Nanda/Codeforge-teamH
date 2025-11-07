@@ -1,6 +1,8 @@
 from flask import jsonify, request
 from sqlalchemy import Column, Integer, String
 from db import Base, engine, SessionLocal
+from utils.blockchain import blockchain  # ✅ Local blockchain ledger
+from datetime import datetime
 
 # -------------------------------------------
 # ✅ Verifier Table
@@ -21,11 +23,27 @@ Base.metadata.create_all(bind=engine)
 # ✅ Get Verifier Dashboard
 # -------------------------------------------
 def get_verifier_dashboard(verifier_id: int):
+    """
+    Fetch verifier dashboard stats.
+    Also logs a blockchain event for transparency.
+    """
     db = SessionLocal()
     try:
         verifier = db.query(Verifier).get(verifier_id)
         if not verifier:
             return jsonify({"error": "Verifier not found"}), 404
+
+        # ✅ Blockchain log for data retrieval
+        blockchain.add_block({
+            "event": "verifier_dashboard_fetched",
+            "verifier_id": verifier.id,
+            "timestamp": str(datetime.utcnow()),
+            "stats": {
+                "pending_verifications": verifier.pending_verifications,
+                "approved_actions": verifier.approved_actions,
+                "rejected_items": verifier.rejected_items
+            }
+        })
 
         return jsonify({
             "verifier_id": verifier.id,
@@ -39,9 +57,13 @@ def get_verifier_dashboard(verifier_id: int):
 
 
 # -------------------------------------------
-# ✅ Upsert Verifier (ID Required)
+# ✅ Upsert Verifier (Insert/Update)
 # -------------------------------------------
 def upsert_verifier(data):
+    """
+    Creates or updates a verifier record.
+    Logs every change in blockchain for traceability.
+    """
     db = SessionLocal()
     try:
         # Validate input
@@ -52,8 +74,9 @@ def upsert_verifier(data):
 
         verifier_id = int(data["id"])
 
-        # Try to get existing verifier
+        # Fetch existing record
         verifier = db.query(Verifier).get(verifier_id)
+        is_new = False
 
         if verifier:
             # Update existing record
@@ -62,7 +85,8 @@ def upsert_verifier(data):
             verifier.approved_actions = data.get("approvedActions", verifier.approved_actions)
             verifier.rejected_items = data.get("rejectedItems", verifier.rejected_items)
         else:
-            # Create new with the given ID
+            # Create new record
+            is_new = True
             verifier = Verifier(
                 id=verifier_id,
                 name=data["name"],
@@ -74,6 +98,17 @@ def upsert_verifier(data):
 
         db.commit()
         db.refresh(verifier)
+
+        # ✅ Blockchain record
+        blockchain.add_block({
+            "event": "verifier_created" if is_new else "verifier_updated",
+            "verifier_id": verifier.id,
+            "name": verifier.name,
+            "pending_verifications": verifier.pending_verifications,
+            "approved_actions": verifier.approved_actions,
+            "rejected_items": verifier.rejected_items,
+            "timestamp": str(datetime.utcnow())
+        })
 
         return jsonify({
             "message": "Verifier upserted successfully",
