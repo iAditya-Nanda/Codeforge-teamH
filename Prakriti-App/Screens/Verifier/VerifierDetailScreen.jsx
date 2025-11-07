@@ -1,118 +1,72 @@
 import React, { useState } from "react";
 import {
-    View,
-    Text,
-    StyleSheet,
-    Pressable,
-    Image,
-    Animated,
+  View, Text, StyleSheet, Pressable, Image, Animated, Alert
 } from "react-native";
 import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 
+const SERVER = "http://100.111.185.121:8080";
+
 const VerifierDetailScreen = ({ route, navigation }) => {
-    const insets = useSafeAreaInsets();
-    const { item } = route.params; // { type, title, timestamp, image, location }
-    const [mode, setMode] = useState("tap"); // tap | swipe | confirm
-    const [translateX] = useState(new Animated.Value(0));
+  const insets = useSafeAreaInsets();
+  const { submission } = route.params;
+  const [translateX] = useState(new Animated.Value(0));
 
-    const handleApprove = () => {
-        console.log("APPROVED:", item);
-        navigation.goBack();
-    };
+  const review = async (action) => {
+    try {
+      const res = await fetch(`${SERVER}/api/v1/submissions/${submission.id}/review`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          action,
+          reviewer_id: 1,
+          remarks: action === "approve" ? "Valid action" : "Invalid proof",
+        }),
+      });
 
-    const handleReject = () => {
-        console.log("REJECTED:", item);
-        navigation.goBack();
-    };
+      const json = await res.json();
+      console.log(json);
+      Alert.alert("Success", `Submission ${action}ed.`);
+      navigation.goBack();
+    } catch (err) {
+      Alert.alert("Error", "Failed to submit review.");
+    }
+  };
 
-    // Swipe mode behavior
-    const startSwipe = (direction) => {
-        Animated.timing(translateX, {
-            toValue: direction === "right" ? 300 : -300,
-            duration: 200,
-            useNativeDriver: true,
-        }).start(() => {
-            direction === "right" ? handleApprove() : handleReject();
-        });
-    };
+  return (
+    <SafeAreaView style={[styles.safe, { paddingTop: insets.top + 6 }]}>
+      
+      <View style={styles.header}>
+        <Pressable onPress={() => navigation.goBack()}>
+          <Ionicons name="chevron-back" size={26} color="#2F5C39" />
+        </Pressable>
+        <Text style={styles.headerTitle}>Review Submission</Text>
+        <View style={{ width: 26 }} />
+      </View>
 
-    return (
-        <SafeAreaView style={[styles.safe, { paddingTop: insets.top + 6 }]}>
-            {/* Header */}
-            <View style={styles.header}>
-                <Pressable onPress={() => navigation.goBack()}>
-                    <Ionicons name="chevron-back" size={26} color="#2F5C39" />
-                </Pressable>
-                <Text style={styles.headerTitle}>Review Submission</Text>
-                <View style={{ width: 26 }} />
-            </View>
+      <View style={styles.card}>
+        {submission.image && (
+          <Image source={{ uri: SERVER + submission.image }} style={styles.image} />
+        )}
+        <Text style={styles.title}>{submission.title}</Text>
+        <Text style={styles.location}>{submission.location}</Text>
+      </View>
 
-            {/* Mode Selector */}
-            <View style={styles.modeRow}>
-                {[
-                    { key: "tap", label: "Tap Mode" },
-                    { key: "swipe", label: "Swipe Mode" },
-                    { key: "confirm", label: "Confirm Mode" },
-                ].map((m) => (
-                    <Pressable
-                        key={m.key}
-                        onPress={() => setMode(m.key)}
-                        style={[styles.modeBtn, mode === m.key && styles.modeActive]}
-                    >
-                        <Text style={[styles.modeText, mode === m.key && styles.modeTextActive]}>
-                            {m.label}
-                        </Text>
-                    </Pressable>
-                ))}
-            </View>
+      <View style={styles.buttonRow}>
+        <Pressable onPress={() => review("reject")} style={[styles.actionBtn, styles.reject]}>
+          <MaterialCommunityIcons name="close" size={20} color="#FFF" />
+          <Text style={styles.btnText}>Reject</Text>
+        </Pressable>
 
-            {/* Card Content */}
-            <Animated.View style={[styles.card, mode === "swipe" && { transform: [{ translateX }] }]}>
-                {item.image && <Image source={{ uri: item.image }} style={styles.image} />}
+        <Pressable onPress={() => review("approve")} style={[styles.actionBtn, styles.approve]}>
+          <MaterialCommunityIcons name="check" size={20} color="#FFF" />
+          <Text style={styles.btnText}>Approve</Text>
+        </Pressable>
+      </View>
 
-                <Text style={styles.title}>{item.title}</Text>
-                <Text style={styles.location}>{item.location}</Text>
-                <Text style={styles.info}>Submitted: {item.timestamp}</Text>
-            </Animated.View>
-
-            {/* Mode: TAP Mode (Fast) */}
-            {mode === "tap" && (
-                <View style={styles.buttonRow}>
-                    <Pressable onPress={handleReject} style={[styles.actionBtn, styles.reject]}>
-                        <MaterialCommunityIcons name="close" size={20} color="#FFF" />
-                        <Text style={styles.btnText}>Reject</Text>
-                    </Pressable>
-
-                    <Pressable onPress={handleApprove} style={[styles.actionBtn, styles.approve]}>
-                        <MaterialCommunityIcons name="check" size={20} color="#FFF" />
-                        <Text style={styles.btnText}>Approve</Text>
-                    </Pressable>
-                </View>
-            )}
-
-            {/* Mode: SWIPE Mode */}
-            {mode === "swipe" && (
-                <View style={styles.swipeHint}>
-                    <Text style={styles.hintText}>Swipe Right to Approve — Swipe Left to Reject</Text>
-                </View>
-            )}
-
-            {/* Mode: CONFIRMATION Mode */}
-            {mode === "confirm" && (
-                <View style={styles.confirmContainer}>
-                    <Pressable onPress={handleApprove} style={[styles.confirmBtn, styles.approve]}>
-                        <Text style={styles.btnText}>Approve (Confirm)</Text>
-                    </Pressable>
-
-                    <Pressable onPress={handleReject} style={[styles.confirmBtn, styles.reject]}>
-                        <Text style={styles.btnText}>Reject (Confirm)</Text>
-                    </Pressable>
-                </View>
-            )}
-        </SafeAreaView>
-    );
+    </SafeAreaView>
+  );
 };
 
 export default VerifierDetailScreen;

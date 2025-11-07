@@ -1,43 +1,43 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
     View,
     Text,
     StyleSheet,
     Pressable,
     FlatList,
+    ActivityIndicator
 } from "react-native";
 import MapView, { Marker } from "react-native-maps";
 import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import Ionicons from "@expo/vector-icons/Ionicons";
 
-const compostPoints = [
-    {
-        id: "1",
-        name: "Pahadi Community Compost Hub",
-        distance: "500m",
-        benefit: "Local gardens use your waste 💚",
-        coords: { latitude: 32.2441, longitude: 77.1889 },
-    },
-    {
-        id: "2",
-        name: "Market Food Waste Drop",
-        distance: "850m",
-        benefit: "Reduces landfill load 🌍",
-        coords: { latitude: 32.2448, longitude: 77.1911 },
-    },
-    {
-        id: "3",
-        name: "Riverwalk Green Bin",
-        distance: "1.2 km",
-        benefit: "Helps keep rivers clean 🏞️",
-        coords: { latitude: 32.2434, longitude: 77.1872 },
-    },
-];
+const SERVER_IP = "http://100.111.185.121:8080";
 
 const CompostPointsScreen = ({ navigation }) => {
     const insets = useSafeAreaInsets();
     const [view, setView] = useState("map"); // map | list
+
+    const [points, setPoints] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(false);
+
+    const loadCompostPoints = async () => {
+        try {
+            const res = await fetch(`${SERVER_IP}/api/v1/compost/all`);
+            const json = await res.json();
+            setPoints(json.compostPoints || []);
+        } catch (err) {
+            console.log("Compost fetch error:", err);
+            setError(true);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    useEffect(() => {
+        loadCompostPoints();
+    }, []);
 
     return (
         <SafeAreaView style={[styles.safe, { paddingBottom: insets.bottom || 14 }]}>
@@ -53,7 +53,7 @@ const CompostPointsScreen = ({ navigation }) => {
 
             <Text style={styles.subtitle}>Drop your food scraps instead of trashing them 🌱</Text>
 
-            {/* WHY THIS MATTERS BANNER */}
+            {/* BANNER */}
             <View style={styles.banner}>
                 <MaterialCommunityIcons name="leaf-circle" size={26} color="#2F5C39" />
                 <Text style={styles.bannerText}>
@@ -61,7 +61,7 @@ const CompostPointsScreen = ({ navigation }) => {
                 </Text>
             </View>
 
-            {/* VIEW TOGGLE */}
+            {/* Toggle */}
             <View style={styles.toggleRow}>
                 <Pressable
                     onPress={() => setView("map")}
@@ -84,18 +84,44 @@ const CompostPointsScreen = ({ navigation }) => {
                 </Pressable>
             </View>
 
+            {/* LOADING */}
+            {loading && (
+                <View style={styles.center}>
+                    <ActivityIndicator size="large" color="#2F5C39" />
+                    <Text style={{ marginTop: 8, color: "#6C7D73" }}>Loading compost points…</Text>
+                </View>
+            )}
+
+            {/* ERROR */}
+            {error && !loading && (
+                <View style={styles.center}>
+                    <MaterialCommunityIcons name="wifi-off" size={46} color="#88988F" />
+                    <Text style={styles.errorText}>Unable to load data</Text>
+                    <Text style={styles.errorSub}>Check your internet connection.</Text>
+                </View>
+            )}
+
+            {/* EMPTY */}
+            {!loading && !error && points.length === 0 && (
+                <View style={styles.center}>
+                    <MaterialCommunityIcons name="compost" size={46} color="#88988F" />
+                    <Text style={styles.errorText}>No compost points available</Text>
+                    <Text style={styles.errorSub}>Explore the city for nearby drop hubs 🌱</Text>
+                </View>
+            )}
+
             {/* MAP VIEW */}
-            {view === "map" && (
+            {!loading && points.length > 0 && view === "map" && (
                 <MapView
                     style={styles.map}
                     initialRegion={{
-                        latitude: compostPoints[0].coords.latitude,
-                        longitude: compostPoints[0].coords.longitude,
+                        latitude: points[0].coords.latitude,
+                        longitude: points[0].coords.longitude,
                         latitudeDelta: 0.01,
                         longitudeDelta: 0.01,
                     }}
                 >
-                    {compostPoints.map((p) => (
+                    {points.map(p => (
                         <Marker key={p.id} coordinate={p.coords}>
                             <MaterialCommunityIcons name="compost" size={40} color="#2F5C39" />
                         </Marker>
@@ -104,10 +130,10 @@ const CompostPointsScreen = ({ navigation }) => {
             )}
 
             {/* LIST VIEW */}
-            {view === "list" && (
+            {!loading && points.length > 0 && view === "list" && (
                 <FlatList
-                    data={compostPoints}
-                    keyExtractor={(i) => i.id}
+                    data={points}
+                    keyExtractor={i => String(i.id)}
                     contentContainerStyle={{ padding: 20 }}
                     renderItem={({ item }) => (
                         <View style={styles.card}>
@@ -172,4 +198,8 @@ const styles = StyleSheet.create({
     cardName: { fontSize: 15, color: "#203B2A", fontWeight: "700" },
     cardBenefit: { fontSize: 13, color: "#647367", marginTop: 3 },
     cardDistance: { fontSize: 12, color: "#89998F", marginTop: 6 },
+
+    center: { flex: 1, justifyContent: "center", alignItems: "center" },
+    errorText: { marginTop: 10, color: "#41524A", fontSize: 16, fontWeight: "700" },
+    errorSub: { marginTop: 4, color: "#718379", fontSize: 13 },
 });

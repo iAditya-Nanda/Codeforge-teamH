@@ -1,46 +1,17 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
     View,
     Text,
     StyleSheet,
-    ScrollView,
     Pressable,
     FlatList,
+    ActivityIndicator
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import MapView, { Marker } from "react-native-maps";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
-import Ionicons from "@expo/vector-icons/Ionicons";
 
-const places = [
-    {
-        id: "1",
-        name: "Himalayan Roots Café",
-        distance: "600m",
-        type: "Café",
-        level: "Gold",
-        tags: ["Refill Available", "Local Produce"],
-        coords: { latitude: 32.2433, longitude: 77.1890 },
-    },
-    {
-        id: "2",
-        name: "Eco Refill Water Station - Mall Road",
-        distance: "350m",
-        type: "Refill Station",
-        level: "Certified",
-        tags: ["Free Refill", "Reduce Plastic"],
-        coords: { latitude: 32.2438, longitude: 77.1905 },
-    },
-    {
-        id: "3",
-        name: "Pahadi Compost Hub",
-        distance: "1.1 km",
-        type: "Compost Point",
-        level: "Silver",
-        tags: ["Organic Waste Drop", "Community Run"],
-        coords: { latitude: 32.2440, longitude: 77.1870 },
-    },
-];
+const SERVER_IP = "http://100.111.185.121:8080";
 
 const levelColor = {
     Gold: "#CFAA62",
@@ -50,6 +21,26 @@ const levelColor = {
 
 const ExplorerScreen = () => {
     const [viewMode, setViewMode] = useState("map");
+    const [places, setPlaces] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(false);
+
+    const loadPlaces = async () => {
+        try {
+            const res = await fetch(`${SERVER_IP}/api/v1/places/all`);
+            const json = await res.json();
+            setPlaces(json.places || []);
+        } catch (err) {
+            console.log("Places fetch error:", err);
+            setError(true);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    useEffect(() => {
+        loadPlaces();
+    }, []);
 
     return (
         <SafeAreaView style={styles.safe}>
@@ -89,8 +80,33 @@ const ExplorerScreen = () => {
                 </Pressable>
             </View>
 
+            {/* Loading */}
+            {loading && (
+                <View style={styles.center}>
+                    <ActivityIndicator size="large" color="#2E5D3F" />
+                    <Text style={styles.loadingText}>Fetching eco places…</Text>
+                </View>
+            )}
+
+            {/* Error */}
+            {error && !loading && (
+                <View style={styles.center}>
+                    <MaterialCommunityIcons name="wifi-off" size={48} color="#7A8A82" />
+                    <Text style={styles.errorText}>Unable to load places</Text>
+                    <Text style={styles.errorSub}>Check your connection.</Text>
+                </View>
+            )}
+
+            {/* Empty */}
+            {!loading && !error && places.length === 0 && (
+                <View style={styles.center}>
+                    <MaterialCommunityIcons name="map-marker-off" size={48} color="#7A8A82" />
+                    <Text style={styles.errorText}>No places available</Text>
+                </View>
+            )}
+
             {/* MAP VIEW */}
-            {viewMode === "map" && (
+            {!loading && places.length > 0 && viewMode === "map" && (
                 <MapView
                     style={styles.map}
                     initialRegion={{
@@ -109,10 +125,10 @@ const ExplorerScreen = () => {
             )}
 
             {/* LIST VIEW */}
-            {viewMode === "list" && (
+            {!loading && places.length > 0 && viewMode === "list" && (
                 <FlatList
                     data={places}
-                    keyExtractor={(item) => item.id}
+                    keyExtractor={(item) => String(item.id)}
                     contentContainerStyle={{ padding: 20 }}
                     renderItem={({ item }) => (
                         <View style={styles.card}>
@@ -128,8 +144,8 @@ const ExplorerScreen = () => {
                             </View>
 
                             <View style={styles.tagRow}>
-                                {item.tags.map((t, i) => (
-                                    <View key={i} style={styles.tagChip}>
+                                {item.tags.map((t, index) => (
+                                    <View key={index} style={styles.tagChip}>
                                         <Text style={styles.tagText}>{t}</Text>
                                     </View>
                                 ))}
@@ -146,7 +162,6 @@ export default ExplorerScreen;
 
 const styles = StyleSheet.create({
     safe: { flex: 1, backgroundColor: "#F5F8F6" },
-
     header: { padding: 20 },
     title: { fontSize: 20, fontWeight: "800", color: "#2E5D3F" },
     subtitle: { fontSize: 13, color: "#6F7D75", marginTop: 4 },
@@ -164,10 +179,15 @@ const styles = StyleSheet.create({
     cardName: { fontSize: 16, fontWeight: "700", color: "#1F2F25" },
     cardDistance: { fontSize: 13, color: "#55675F" },
 
-    levelTag: { marginTop: 8, borderWidth: 1.3, alignSelf: "flex-start", borderRadius: 8, paddingHorizontal: 8, paddingVertical: 3 },
+    levelTag: { marginTop: 8, borderWidth: 1.4, alignSelf: "flex-start", borderRadius: 8, paddingHorizontal: 8, paddingVertical: 3 },
     levelText: { fontSize: 12, fontWeight: "700" },
 
     tagRow: { flexDirection: "row", flexWrap: "wrap", marginTop: 10 },
     tagChip: { backgroundColor: "#E7EFEA", paddingVertical: 4, paddingHorizontal: 10, borderRadius: 8, marginRight: 6, marginBottom: 6 },
     tagText: { fontSize: 12, fontWeight: "600", color: "#2E5D3F" },
+
+    center: { flex: 1, justifyContent: "center", alignItems: "center" },
+    loadingText: { marginTop: 10, color: "#6F7D75" },
+    errorText: { marginTop: 14, fontSize: 16, fontWeight: "700", color: "#435247" },
+    errorSub: { color: "#6F7D75", marginTop: 4 },
 });

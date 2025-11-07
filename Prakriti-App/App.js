@@ -10,6 +10,8 @@ import Ionicons from "@expo/vector-icons/Ionicons";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 
 // Screens
+import SplashScreen from "./Screens/Splash/SplashScreen";
+
 import Login from "./Screens/Login/Login";
 import Signup from "./Screens/SignUp/SignUp";
 
@@ -115,6 +117,8 @@ export default function App() {
         <GestureHandlerRootView style={{ flex: 1 }}>
             <NavigationContainer>
                 <Stack.Navigator screenOptions={{ headerShown: false }}>
+                    <Stack.Screen name="Splash" component={SplashScreen} />
+
                     <Stack.Screen name="Login" component={Login} />
                     <Stack.Screen name="Signup" component={Signup} />
                     <Stack.Screen name="Home" component={MainTabs} />
