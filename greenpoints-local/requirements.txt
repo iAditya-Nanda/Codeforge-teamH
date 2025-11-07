@@ -1,0 +1,16 @@
+# Green Points Blockchain - Requirements
+# Python 3.7+ required
+
+# Core blockchain (no dependencies needed)
+# All blockchain functionality uses Python standard library:
+# - hashlib, json, time, typing, sqlite3
+
+# Flask API Server (for frontend integration)
+flask==2.3.0
+flask-cors==4.0.0
+
+# Testing
+requests==2.31.0
+
+# Optional: Production deployment
+# gunicorn==21.2.0
